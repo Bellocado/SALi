@@ -3,7 +3,6 @@
 #include "raylib.h"
 #include "Boat.h"
 #include "Wind.h"
-
 #include <utility>
 #include <vector>
 

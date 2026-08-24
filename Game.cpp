@@ -1,6 +1,5 @@
 #include "Game.h"
 #include "UI.h"
-
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -40,8 +39,7 @@ namespace {
             prev = pt;
         }
     }
-
-} // namespace
+}
 
 void Game::Update(float dt) {
     if (state_ == State::Play) {
@@ -50,7 +48,6 @@ void Game::Update(float dt) {
         handleBoatControls(dt);
         updateBoatPhysics(boat_, wind_, dt);
 
-        // Track 360-degree penalty turns.
         if (pendingPenalties_ > 0) {
             float raw = boat_.heading - lastPenaltyHeading_;
             raw = normalizeAngle(raw + 180.0f) - 180.0f;
@@ -104,10 +101,10 @@ void Game::Draw() {
     ClearBackground(uiColor(245, 240, 230, 255));
 
     switch (state_) {
-        case State::Menu:    drawMenu();    break;
-        case State::Setup:   drawSetup();   break;
-        case State::Play:    drawPlay();    break;
-        case State::Credits: drawCredits(); break;
+        case State::Menu:drawMenu();break;
+        case State::Setup:drawSetup();break;
+        case State::Play:drawPlay();break;
+        case State::Credits:drawCredits();break;
     }
 }
 
@@ -158,19 +155,17 @@ void Game::handleSetupInput(float dt) {
     int ch = GetCharPressed();
     while (ch > 0) {
         if (angleActive_) {
-            if (((ch >= '0' && ch <= '9') || ch == '.' || ch == '-') &&
-                std::strlen(angleBuf_) < sizeof(angleBuf_) - 1) {
+            if (((ch >= '0' && ch <= '9') || ch == '.' || ch == '-') && std::strlen(angleBuf_) < sizeof(angleBuf_) - 1) {
                 const size_t len = std::strlen(angleBuf_);
-            angleBuf_[len] = static_cast<char>(ch);
-            angleBuf_[len + 1] = '\0';
-                }
+                angleBuf_[len] = static_cast<char>(ch);
+                angleBuf_[len + 1] = '\0';
+            }
         } else if (speedActive_) {
-            if (((ch >= '0' && ch <= '9') || ch == '.' || ch == '-') &&
-                std::strlen(speedBuf_) < sizeof(speedBuf_) - 1) {
+            if (((ch >= '0' && ch <= '9') || ch == '.' || ch == '-') && std::strlen(speedBuf_) < sizeof(speedBuf_) - 1) {
                 const size_t len = std::strlen(speedBuf_);
-            speedBuf_[len] = static_cast<char>(ch);
-            speedBuf_[len + 1] = '\0';
-                }
+                speedBuf_[len] = static_cast<char>(ch);
+                speedBuf_[len + 1] = '\0';
+            }
         }
 
         ch = GetCharPressed();
@@ -263,18 +258,18 @@ void Game::generateCourse() {
     buoys_.clear();
 
     const Vector2 upwind = headingToVec(wind_.trueAngle);
-    const Vector2 right = { -upwind.y, upwind.x };   // starboard side
-    const Vector2 left = { -right.x, -right.y };     // port side
+    const Vector2 right = { -upwind.y, upwind.x };
+    const Vector2 left = { -right.x, -right.y };
     const Vector2 downwind = { -upwind.x, -upwind.y };
 
     constexpr float kUpwindLength         = 1300.0f;
-    constexpr float kReachOffset          = 750.0f; // longer reach, to the left
-    constexpr float kReachDownwindOffset  = 300.0f; // reach mark sits downwind of Mark 1
+    constexpr float kReachOffset          = 1000.0f;
+    constexpr float kReachDownwindOffset  = 300.0f;
     constexpr float kLeewardLegLength     = 1250.0f;
     constexpr float kGateHalfWidth        = 160.0f;
     constexpr float kStartHalfWidth       = 180.0f;
     constexpr float kFinishReachLength    = 480.0f;
-    constexpr float kFinishDownwindOffset = 220.0f; // finish lower than the gate
+    constexpr float kFinishDownwindOffset = 220.0f;
     constexpr float kFinishHalfWidth      = 150.0f;
     constexpr float kBuoyRadius           = 22.0f;
     constexpr float kMarkRoundingRadius   = 80.0f;
@@ -296,7 +291,6 @@ void Game::generateCourse() {
 
     CourseCheckpoint cp;
 
-    // 1. Start line
     cp.type = CourseCheckpoint::Type::StartLine;
     cp.a = startA;
     cp.b = startB;
@@ -307,7 +301,6 @@ void Game::generateCourse() {
     buoys_.push_back({ startA, kBuoyRadius });
     buoys_.push_back({ startB, kBuoyRadius });
 
-    // 2. Mark 1 — windward mark
     const Vector2 mark1 = {
         startCenter.x + upwind.x * kUpwindLength,
         startCenter.y + upwind.y * kUpwindLength
@@ -322,8 +315,6 @@ void Game::generateCourse() {
 
     buoys_.push_back({ mark1, kBuoyRadius });
 
-    // 3. Mark 2 — reaching mark.
-    //    Left of Mark 1, longer reach, and a bit downwind.
     const Vector2 mark2 = {
         mark1.x + left.x * kReachOffset + downwind.x * kReachDownwindOffset,
         mark1.y + left.y * kReachOffset + downwind.y * kReachDownwindOffset
@@ -338,7 +329,6 @@ void Game::generateCourse() {
 
     buoys_.push_back({ mark2, kBuoyRadius });
 
-    // 4. Leeward gate 3s/3p, downwind of Mark 2.
     const Vector2 gateCenter = {
         mark2.x + downwind.x * kLeewardLegLength,
         mark2.y + downwind.y * kLeewardLegLength
@@ -363,7 +353,6 @@ void Game::generateCourse() {
     buoys_.push_back({ gate3s, kBuoyRadius });
     buoys_.push_back({ gate3p, kBuoyRadius });
 
-    // 5. Mark 2 again — upwind return to the reach mark.
     cp.type = CourseCheckpoint::Type::Mark;
     cp.a = mark2;
     cp.b = mark2;
@@ -373,7 +362,6 @@ void Game::generateCourse() {
 
     buoys_.push_back({ mark2, kBuoyRadius });
 
-    // 6. Right gate buoy only (3s).
     cp.type = CourseCheckpoint::Type::Mark;
     cp.a = gate3s;
     cp.b = gate3s;
@@ -383,13 +371,11 @@ void Game::generateCourse() {
 
     buoys_.push_back({ gate3s, kBuoyRadius });
 
-    // 7. Finish line — reach finish, lower than the gate.
     const Vector2 finishDirRaw = {
         right.x * kFinishReachLength + downwind.x * kFinishDownwindOffset,
         right.y * kFinishReachLength + downwind.y * kFinishDownwindOffset
     };
-    const float finishDirLen = std::sqrt(finishDirRaw.x * finishDirRaw.x +
-    finishDirRaw.y * finishDirRaw.y);
+    const float finishDirLen = std::sqrt(finishDirRaw.x * finishDirRaw.x + finishDirRaw.y * finishDirRaw.y);
     const Vector2 finishDir = {
         finishDirRaw.x / finishDirLen,
         finishDirRaw.y / finishDirLen
@@ -424,7 +410,6 @@ void Game::generateCourse() {
     buoys_.push_back({ finishA, kBuoyRadius });
     buoys_.push_back({ finishB, kBuoyRadius });
 
-    // Spawn just downwind of the start line.
     const Vector2 spawn = {
         startCenter.x + downwind.x * 80.0f,
         startCenter.y + downwind.y * 80.0f
@@ -463,112 +448,97 @@ void Game::checkRaceProgress() {
 
     bool completed = false;
 
-    if (cp.type == CourseCheckpoint::Type::StartLine ||
-        cp.type == CourseCheckpoint::Type::Gate ||
-        cp.type == CourseCheckpoint::Type::FinishLine) {
-
+    if (cp.type == CourseCheckpoint::Type::StartLine || cp.type == CourseCheckpoint::Type::Gate || cp.type == CourseCheckpoint::Type::FinishLine) {
         const Vector2 center = midpoint(cp.a, cp.b);
+        const float prevSide = dot({ prev.x - center.x, prev.y - center.y }, cp.passDir);
+        const float currSide = dot({ curr.x - center.x, curr.y - center.y }, cp.passDir);
 
-    const float prevSide = dot({ prev.x - center.x, prev.y - center.y },
-                               cp.passDir);
-    const float currSide = dot({ curr.x - center.x, curr.y - center.y },
-                               cp.passDir);
-
-    if (prevSide <= 0.0f && currSide > 0.0f &&
-        distanceToSegment(curr, cp.a, cp.b) < cp.radius) {
-        completed = true;
+        if (prevSide <= 0.0f && currSide > 0.0f && distanceToSegment(curr, cp.a, cp.b) < cp.radius) {
+            completed = true;
         }
-        } else if (cp.type == CourseCheckpoint::Type::Mark) {
-            const Vector2 markPos = cp.a;
+    } else if (cp.type == CourseCheckpoint::Type::Mark) {
+        const Vector2 markPos = cp.a;
 
-            Vector2 prevCenter = markPos;
-            Vector2 nextCenter = markPos;
+        Vector2 prevCenter = markPos;
+        Vector2 nextCenter = markPos;
 
-            if (currentCheckpoint_ > 0) {
-                const CourseCheckpoint& pc = course_[currentCheckpoint_ - 1];
-                if (pc.type == CourseCheckpoint::Type::StartLine ||
-                    pc.type == CourseCheckpoint::Type::Gate ||
-                    pc.type == CourseCheckpoint::Type::FinishLine) {
-                    prevCenter = midpoint(pc.a, pc.b);
-                    } else {
-                        prevCenter = pc.a;
-                    }
-            }
-
-            if (currentCheckpoint_ + 1 < static_cast<int>(course_.size())) {
-                const CourseCheckpoint& nc = course_[currentCheckpoint_ + 1];
-                if (nc.type == CourseCheckpoint::Type::StartLine ||
-                    nc.type == CourseCheckpoint::Type::Gate ||
-                    nc.type == CourseCheckpoint::Type::FinishLine) {
-                    nextCenter = midpoint(nc.a, nc.b);
-                    } else {
-                        nextCenter = nc.a;
-                    }
-            }
-
-            const Vector2 approachRaw = {
-                markPos.x - prevCenter.x,
-                markPos.y - prevCenter.y
-            };
-            const float approachLen = std::sqrt(approachRaw.x * approachRaw.x +
-            approachRaw.y * approachRaw.y);
-            const Vector2 approachDir = {
-                approachRaw.x / (approachLen + 1e-6f),
-                approachRaw.y / (approachLen + 1e-6f)
-            };
-
-            const Vector2 departRaw = {
-                nextCenter.x - markPos.x,
-                nextCenter.y - markPos.y
-            };
-            const float departLen = std::sqrt(departRaw.x * departRaw.x +
-            departRaw.y * departRaw.y);
-            const Vector2 departDir = {
-                departRaw.x / (departLen + 1e-6f),
-                departRaw.y / (departLen + 1e-6f)
-            };
-
-            const float entryOffset = 90.0f;
-            const float exitOffset  = 90.0f;
-            const float lineHalfLen = 350.0f;
-
-            const Vector2 entryMid = {
-                markPos.x - approachDir.x * entryOffset,
-                markPos.y - approachDir.y * entryOffset
-            };
-            const Vector2 entryTangent = { -approachDir.y, approachDir.x };
-
-            const Vector2 exitMid = {
-                markPos.x + departDir.x * exitOffset,
-                markPos.y + departDir.y * exitOffset
-            };
-            const Vector2 exitTangent = { -departDir.y, departDir.x };
-
-            if (!markLineACrossed_) {
-                if (crossLineCheck(prev, curr, entryMid, approachDir,
-                    entryTangent, lineHalfLen)) {
-                    markLineACrossed_ = true;
-                    }
+        if (currentCheckpoint_ > 0) {
+            const CourseCheckpoint& pc = course_[currentCheckpoint_ - 1];
+            if (pc.type == CourseCheckpoint::Type::StartLine || pc.type == CourseCheckpoint::Type::Gate || pc.type == CourseCheckpoint::Type::FinishLine) {
+                prevCenter = midpoint(pc.a, pc.b);
             } else {
-                if (crossLineCheck(prev, curr, exitMid, departDir,
-                    exitTangent, lineHalfLen)) {
-                    completed = true;
+                prevCenter = pc.a;
+            }
+        }
+
+        if (currentCheckpoint_ + 1 < static_cast<int>(course_.size())) {
+            const CourseCheckpoint& nc = course_[currentCheckpoint_ + 1];
+            if (nc.type == CourseCheckpoint::Type::StartLine || nc.type == CourseCheckpoint::Type::Gate || nc.type == CourseCheckpoint::Type::FinishLine) {
+                nextCenter = midpoint(nc.a, nc.b);
+            } else {
+                nextCenter = nc.a;
+            }
+        }
+
+        const Vector2 approachRaw = {
+            markPos.x - prevCenter.x,
+            markPos.y - prevCenter.y
+        };
+        const float approachLen = std::sqrt(approachRaw.x * approachRaw.x + approachRaw.y * approachRaw.y);
+        const Vector2 approachDir = {
+            approachRaw.x / (approachLen + 1e-6f),
+            approachRaw.y / (approachLen + 1e-6f)
+        };
+
+        const Vector2 departRaw = {
+            nextCenter.x - markPos.x,
+            nextCenter.y - markPos.y
+        };
+        const float departLen = std::sqrt(departRaw.x * departRaw.x + departRaw.y * departRaw.y);
+        const Vector2 departDir = {
+            departRaw.x / (departLen + 1e-6f),
+            departRaw.y / (departLen + 1e-6f)
+        };
+
+        const float entryOffset = 90.0f;
+        const float exitOffset  = 90.0f;
+        const float lineHalfLen = 350.0f;
+
+        const Vector2 entryMid = {
+            markPos.x - approachDir.x * entryOffset,
+            markPos.y - approachDir.y * entryOffset
+        };
+        const Vector2 entryTangent = { -approachDir.y, approachDir.x };
+
+        const Vector2 exitMid = {
+            markPos.x + departDir.x * exitOffset,
+            markPos.y + departDir.y * exitOffset
+        };
+        const Vector2 exitTangent = { -departDir.y, departDir.x };
+
+        if (!markLineACrossed_) {
+            if (crossLineCheck(prev, curr, entryMid, approachDir, entryTangent, lineHalfLen)) {
+                markLineACrossed_ = true;
+            }
+        } else {
+            if (crossLineCheck(prev, curr, exitMid, departDir, exitTangent, lineHalfLen)) {
+                completed = true;
                 markLineACrossed_ = false;
-                    }
             }
         }
+    }
 
-        if (completed && cp.type == CourseCheckpoint::Type::FinishLine && pendingPenalties_ > 0) {
-            completed = false;
+    if (completed && cp.type == CourseCheckpoint::Type::FinishLine && pendingPenalties_ > 0) {
+        completed = false;
+    }
+
+    if (completed) {
+        ++currentCheckpoint_;
+
+        if (currentCheckpoint_ >= static_cast<int>(course_.size())) {
+            raceFinished_ = true;
         }
-
-        if (completed) {
-            ++currentCheckpoint_;
-
-            if (currentCheckpoint_ >= static_cast<int>(course_.size())) {
-                raceFinished_ = true;
-            }
-        }
+    }
 }
 
 void Game::checkEarlyStart() {
@@ -576,7 +546,6 @@ void Game::checkEarlyStart() {
         return;
     }
 
-    // Only in the final minute before the start.
     if (prestartTime_ <= 0.0f || prestartTime_ > 60.0f) {
         return;
     }
@@ -590,11 +559,9 @@ void Game::checkEarlyStart() {
     const float prevSide = dot({ prev.x - center.x, prev.y - center.y }, upwind);
     const float currSide = dot({ curr.x - center.x, curr.y - center.y }, upwind);
 
-    if (prevSide <= 0.0f && currSide > 0.0f &&
-        distanceToSegment(curr, cp.a, cp.b) < cp.radius &&
-        !bfd_) {
+    if (prevSide <= 0.0f && currSide > 0.0f && distanceToSegment(curr, cp.a, cp.b) < cp.radius && !bfd_) {
         bfd_ = true;
-        }
+    }
 }
 
 void Game::handleBuoyCollisions() {
@@ -618,26 +585,24 @@ void Game::handleBuoyCollisions() {
 }
 
 bool Game::crossLineCheck(Vector2 prev, Vector2 curr, Vector2 lineMid, Vector2 passDir, Vector2 tangent, float halfLen) const {
-                              const Vector2 lineA = {
-                                  lineMid.x - tangent.x * halfLen,
-                                  lineMid.y - tangent.y * halfLen
-                              };
-                              const Vector2 lineB = {
-                                  lineMid.x + tangent.x * halfLen,
-                                  lineMid.y + tangent.y * halfLen
-                              };
+    const Vector2 lineA = {
+        lineMid.x - tangent.x * halfLen,
+        lineMid.y - tangent.y * halfLen
+    };
+    const Vector2 lineB = {
+        lineMid.x + tangent.x * halfLen,
+        lineMid.y + tangent.y * halfLen
+    };
 
-                              const float prevSide = dot({ prev.x - lineMid.x, prev.y - lineMid.y },
-                                                         passDir);
-                              const float currSide = dot({ curr.x - lineMid.x, curr.y - lineMid.y },
-                                                         passDir);
+    const float prevSide = dot({ prev.x - lineMid.x, prev.y - lineMid.y }, passDir);
+    const float currSide = dot({ curr.x - lineMid.x, curr.y - lineMid.y }, passDir);
 
-                              if (prevSide <= 0.0f && currSide > 0.0f) {
-                                  return distanceToSegment(curr, lineA, lineB) < 180.0f;
-                              }
+    if (prevSide <= 0.0f && currSide > 0.0f) {
+        return distanceToSegment(curr, lineA, lineB) < 180.0f;
+    }
 
-                              return false;
-                          }
+    return false;
+}
 
 float Game::distanceToSegment(Vector2 p, Vector2 a, Vector2 b) const {
     const Vector2 ab = { b.x - a.x, b.y - a.y };
@@ -666,21 +631,16 @@ Vector2 Game::nextTargetPosition() const {
 
     const CourseCheckpoint& cp = course_[currentCheckpoint_];
 
-    if (cp.type == CourseCheckpoint::Type::StartLine ||
-        cp.type == CourseCheckpoint::Type::FinishLine ||
-        cp.type == CourseCheckpoint::Type::Gate) {
+    if (cp.type == CourseCheckpoint::Type::StartLine || cp.type == CourseCheckpoint::Type::FinishLine || cp.type == CourseCheckpoint::Type::Gate) {
         return midpoint(cp.a, cp.b);
-        }
+    }
 
-        return cp.a;
+    return cp.a;
 }
 
 bool Game::isTargetVisible(Vector2 screenPos) const {
     const float margin = 50.0f;
-    return screenPos.x >= margin &&
-    screenPos.x <= 1280.0f - margin &&
-    screenPos.y >= margin &&
-    screenPos.y <= 720.0f - margin;
+    return screenPos.x >= margin && screenPos.x <= 1280.0f - margin && screenPos.y >= margin && screenPos.y <= 720.0f - margin;
 }
 
 Game::FlagPhase Game::currentFlagPhase() const {
@@ -691,15 +651,12 @@ Game::FlagPhase Game::currentFlagPhase() const {
     const float remain = prestartTime_;
     const float duration = static_cast<float>(prestartMinutes_ * 60);
 
-    // 4.7 flag is up for the entire prestart.
     if (remain > 0.0f) {
-        // Black flag up from duration - 60 until 60 seconds before start.
-        const float blackUpFrom = duration - 60.0f; // e.g. 240 for 5 min
+        const float blackUpFrom = duration - 60.0f;
         if (remain <= blackUpFrom && remain > 60.0f) {
             return FlagPhase::PrepUp;
         }
 
-        // Black flag down during final minute.
         return FlagPhase::PrepDown;
     }
 
@@ -870,9 +827,7 @@ void Game::drawBoat() {
 
     constexpr float baseBelly = 25.0f;
     const float vangFactor = boat_.vangOn ? 0.85f : 1.0f;
-    const float belly = baseBelly * vangFactor *
-    (1.0f - boat_.outhaul * 0.8f) *
-    (1.0f - boat_.boomSheet * 0.4f);
+    const float belly = baseBelly * vangFactor * (1.0f - boat_.outhaul * 0.8f) * (1.0f - boat_.boomSheet * 0.4f);
 
     const float drawSide = boat_.boomSide >= 0.0f ? 1.0f : -1.0f;
 
@@ -882,10 +837,10 @@ void Game::drawBoat() {
     };
 
     /*if (boat_.dispTWA < 25.0f) {
-        const float flap = std::sin(GetTime() * 25.0f) * 6.0f;
-        ctrl.x += normal.x * flap * boat_.sideSign;
-        ctrl.y += normal.y * flap * boat_.sideSign;
-    }*/
+     c onst float flap = std::sin(GetTime() * 25.0f) * 6.0f;                                      *
+     ctrl.x += normal.x * flap * boat_.sideSign;
+     ctrl.y += normal.y * flap * boat_.sideSign;
+}*/
 
     const float visualWindLimit = clampf((boat_.dispTWA - 30.0f) / 140.0f, minSailAngle(), 1.0f);
 
@@ -905,11 +860,7 @@ void Game::drawMinimap() {
     const Rectangle area = { 1000.0f, 500.0f, 250.0f, 190.0f };
 
     DrawRectangleRounded(area, 0.08f, 6, uiColor(10, 14, 22, 220));
-    DrawRectangleLinesEx(
-        { area.x, area.y, area.width, area.height },
-        1.5f,
-        uiColor(80, 90, 110, 255)
-    );
+    DrawRectangleLinesEx( { area.x, area.y, area.width, area.height }, 1.5f, uiColor(80, 90, 110, 255));
 
     if (course_.empty()) {
         return;
@@ -953,10 +904,7 @@ void Game::drawMinimap() {
         return;
     }
 
-    const float scale = std::fmin(
-        (area.width - 24.0f) / worldW,
-                                  (area.height - 24.0f) / worldH
-    );
+    const float scale = std::fmin((area.width - 24.0f) / worldW, (area.height - 24.0f) / worldH);
 
     const float worldCenterX = (minX + maxX) * 0.5f;
     const float worldCenterY = (minY + maxY) * 0.5f;
@@ -968,7 +916,6 @@ void Game::drawMinimap() {
         };
     };
 
-    // Course lines
     for (size_t i = 0; i < course_.size(); ++i) {
         const CourseCheckpoint& cp = course_[i];
 
@@ -984,14 +931,12 @@ void Game::drawMinimap() {
         }
     }
 
-    // Buoys
     for (const auto& [pos, radius] : buoys_) {
         (void)radius;
         const Vector2 p = map(pos);
         DrawCircleV(p, 3.5f, ORANGE);
     }
 
-    // Highlight current target
     if (currentCheckpoint_ >= 0 &&
         currentCheckpoint_ < static_cast<int>(course_.size())) {
 
@@ -1000,10 +945,7 @@ void Game::drawMinimap() {
     if (cp.type == CourseCheckpoint::Type::Mark) {
         const Vector2 p = map(cp.a);
         DrawCircleV(p, 5.5f, YELLOW);
-        DrawCircleLines(static_cast<int>(p.x),
-                        static_cast<int>(p.y),
-                        6,
-                        YELLOW);
+        DrawCircleLines(static_cast<int>(p.x), static_cast<int>(p.y), 6, YELLOW);
     } else if (cp.type == CourseCheckpoint::Type::Gate) {
         const Vector2 a = map(cp.a);
         const Vector2 b = map(cp.b);
@@ -1011,14 +953,8 @@ void Game::drawMinimap() {
         DrawCircleV(a, 5.5f, YELLOW);
         DrawCircleV(b, 5.5f, YELLOW);
 
-        DrawCircleLines(static_cast<int>(a.x),
-                        static_cast<int>(a.y),
-                        6,
-                        YELLOW);
-        DrawCircleLines(static_cast<int>(b.x),
-                        static_cast<int>(b.y),
-                        6,
-                        YELLOW);
+        DrawCircleLines(static_cast<int>(a.x), static_cast<int>(a.y), 6, YELLOW);
+        DrawCircleLines(static_cast<int>(b.x), static_cast<int>(b.y), 6, YELLOW);
     } else if (cp.type == CourseCheckpoint::Type::StartLine) {
         DrawLineEx(map(cp.a), map(cp.b), 2.5f, YELLOW);
     } else if (cp.type == CourseCheckpoint::Type::FinishLine) {
@@ -1026,7 +962,6 @@ void Game::drawMinimap() {
     }
         }
 
-        // Player boat
         const Vector2 bp = map({ boat_.worldX, boat_.worldY });
         const Vector2 fwd = headingToVec(boat_.heading);
         const Vector2 right = { fwd.y, -fwd.x };
@@ -1052,12 +987,7 @@ void Game::drawWindArrow() {
     const Vector2 center = { 640.0f, 60.0f };
     const Vector2 windDir = headingToVec(wind_.trueAngle);
 
-    DrawLineEx(
-        center,
-        { center.x + windDir.x * 60.0f, center.y + windDir.y * 60.0f },
-        3.0f,
-        BLUE
-    );
+    DrawLineEx(center, { center.x + windDir.x * 60.0f, center.y + windDir.y * 60.0f }, 3.0f, BLUE);
 
     DrawCircleV(center, 4.0f, BLUE);
     DrawText(TextFormat("TWD %.0f deg", wind_.trueAngle), 540, 20, 16, DARKGRAY);
@@ -1067,17 +997,12 @@ void Game::drawOverlay() {
     Rectangle uiRect = { 20, 480, 260, 220 };
     DrawRectangleRounded(uiRect, 0.1f, 8, uiColor(15, 20, 30, 240));
 
-    DrawText(TextFormat("SPEED: %.1f kts", boat_.speed),
-             40, 500, 22, GREEN);
-    DrawText(TextFormat("VMG:   %.1f kts", std::fabs(boat_.dispVMG)),
-             40, 530, 22, boat_.dispVMG > 0.0f ? SKYBLUE : ORANGE);
-    DrawText(TextFormat("TWA:   %.0f deg", boat_.dispTWA),
-             40, 560, 20, WHITE);
+    DrawText(TextFormat("SPEED: %.1f kts", boat_.speed), 40, 500, 22, GREEN);
+    DrawText(TextFormat("VMG:   %.1f kts", std::fabs(boat_.dispVMG)), 40, 530, 22, boat_.dispVMG > 0.0f ? SKYBLUE : ORANGE);
+    DrawText(TextFormat("TWA:   %.0f deg", boat_.dispTWA), 40, 560, 20, WHITE);
 
-    DrawText(TextFormat("VANG: [%s]", boat_.vangOn ? "ON" : "OFF"),
-             40, 590, 16, boat_.vangOn ? LIME : GRAY);
-    DrawText(TextFormat("CUNN: [%s]", boat_.cunningOn ? "ON" : "OFF"),
-             140, 590, 16, boat_.cunningOn ? LIME : GRAY);
+    DrawText(TextFormat("VANG: [%s]", boat_.vangOn ? "ON" : "OFF"), 40, 590, 16, boat_.vangOn ? LIME : GRAY);
+    DrawText(TextFormat("CUNN: [%s]", boat_.cunningOn ? "ON" : "OFF"), 140, 590, 16, boat_.cunningOn ? LIME : GRAY);
 
     DrawText("OUTHAUL", 40, 610, 12, GRAY);
     constexpr int barX = 40;
@@ -1085,45 +1010,22 @@ void Game::drawOverlay() {
     constexpr int barWidth = 120;
     constexpr int barHeight = 12;
 
-    const float idealOuthaul = clampf(
-        1.0f - (boat_.dispTWA - 30.0f) / 150.0f,
-                                      0.0f,
-                                      1.0f
-    );
+    const float idealOuthaul = clampf(1.0f - (boat_.dispTWA - 30.0f) / 150.0f, 0.0f, 1.0f);
     const float outhaulError = std::fabs(boat_.outhaul - idealOuthaul);
-    const float outhaulEff = clampf(1.0f - outhaulError * outhaulError * 10.0f,
-                                    0.0f, 1.0f);
+    const float outhaulEff = clampf(1.0f - outhaulError * outhaulError * 10.0f, 0.0f, 1.0f);
 
     DrawRectangle(barX, barY, barWidth, barHeight, uiColor(30, 30, 30, 255));
-    DrawRectangle(
-        barX,
-        barY,
-        static_cast<int>(std::round(barWidth * boat_.outhaul)),
-                  barHeight,
-                  outhaulEff > 0.85f ? LIME : ORANGE
-    );
+    DrawRectangle(barX, barY, static_cast<int>(std::round(barWidth * boat_.outhaul)), barHeight, outhaulEff > 0.85f ? LIME : ORANGE);
 
     const int markerX = barX + static_cast<int>(std::round(barWidth * idealOuthaul));
     DrawLine(markerX, barY - 3, markerX, barY + barHeight + 1, DARKGRAY);
 
-    DrawText(TextFormat("%.2f", boat_.outhaul),
-             barX + barWidth + 8,
-             barY - 2,
-             12,
-             DARKGRAY);
+    DrawText(TextFormat("%.2f", boat_.outhaul), barX + barWidth + 8, barY - 2, 12, DARKGRAY);
 
-    const float trimEff = sailEffectiveness(boat_.dispTWA,
-                                            boat_.boomSheet,
-                                            boat_.outhaul);
+    const float trimEff = sailEffectiveness(boat_.dispTWA, boat_.boomSheet, boat_.outhaul);
     DrawText("FLOW", 40, 655, 12, GRAY);
     DrawRectangle(40, 670, 100, 12, uiColor(30, 30, 30, 255));
-    DrawRectangle(
-        40,
-        670,
-        static_cast<int>(100 * trimEff),
-                  12,
-                  trimEff > 0.85f ? LIME : RED
-    );
+    DrawRectangle(40, 670, static_cast<int>(100 * trimEff), 12, trimEff > 0.85f ? LIME : RED);
 
     DrawText("V: Vang  C: Cunn", 40, 692, 12, DARKGRAY);
     DrawText("W/S: Sheet  Q/E: Outhaul", 40, 708, 12, DARKGRAY);
@@ -1135,18 +1037,14 @@ void Game::drawWindex() {
 
     DrawCircleLines(cx, cy, 30, GRAY);
 
-    const float relAw = std::atan2(boat_.awFrom.x, -boat_.awFrom.y) * RAD2DEG -
-    boat_.heading;
+    const float relAw = std::atan2(boat_.awFrom.x, -boat_.awFrom.y) * RAD2DEG - boat_.heading;
 
     const Vector2 tip = {
         cx + std::sin(relAw * DEG2RAD) * 25.0f,
         cy - std::cos(relAw * DEG2RAD) * 25.0f
     };
 
-    DrawLineEx({ static_cast<float>(cx), static_cast<float>(cy) },
-               tip,
-               2.0f,
-               RED);
+    DrawLineEx({ static_cast<float>(cx), static_cast<float>(cy) }, tip, 2.0f, RED);
     DrawCircleV(tip, 3.0f, RED);
 }
 
@@ -1173,16 +1071,13 @@ void Game::drawCourse() {
             DrawLineEx(sa, sb, 3.0f, DARKGRAY);
 
             DrawCircleV(sa, 18.0f, isCurrent ? YELLOW : ORANGE);
-            DrawCircleLines(static_cast<int>(sa.x), static_cast<int>(sa.y),
-                            18.0f, BLACK);
+            DrawCircleLines(static_cast<int>(sa.x), static_cast<int>(sa.y), 18.0f, BLACK);
 
             DrawCircleV(sb, 18.0f, isCurrent ? YELLOW : ORANGE);
-            DrawCircleLines(static_cast<int>(sb.x), static_cast<int>(sb.y),
-                            18.0f, BLACK);
+            DrawCircleLines(static_cast<int>(sb.x), static_cast<int>(sb.y), 18.0f, BLACK);
         } else if (cp.type == CourseCheckpoint::Type::Mark) {
             DrawCircleV(sa, 20.0f, isCurrent ? YELLOW : ORANGE);
-            DrawCircleLines(static_cast<int>(sa.x), static_cast<int>(sa.y),
-                            20.0f, BLACK);
+            DrawCircleLines(static_cast<int>(sa.x), static_cast<int>(sa.y), 20.0f, BLACK);
         }
     }
 
@@ -1206,10 +1101,7 @@ void Game::drawMarkRoomIndicators() {
         const Vector2 screenPos = worldToScreen(pos);
 
         DrawCircleV(screenPos, kMarkRoomRadius, Fade(YELLOW, 0.06f));
-        DrawCircleLines(static_cast<int>(screenPos.x),
-                        static_cast<int>(screenPos.y),
-                        static_cast<int>(kMarkRoomRadius),
-                        Fade(YELLOW, 0.25f));
+        DrawCircleLines(static_cast<int>(screenPos.x), static_cast<int>(screenPos.y), static_cast<int>(kMarkRoomRadius), Fade(YELLOW, 0.25f));
     }
 }
 
@@ -1244,10 +1136,7 @@ void Game::drawOffscreenArrow() {
     const Vector2 edge = { edgeX, edgeY };
 
     DrawCircleV(edge, 14.0f, YELLOW);
-    DrawCircleLines(static_cast<int>(edge.x),
-                    static_cast<int>(edge.y),
-                    14,
-                    BLACK);
+    DrawCircleLines(static_cast<int>(edge.x), static_cast<int>(edge.y), 14, BLACK);
 
     const Vector2 tip = {
         edge.x + dir.x * 30.0f,
@@ -1265,184 +1154,160 @@ void Game::drawOffscreenArrow() {
     DrawTriangle(tip, base1, base2, YELLOW);
 }
 
-void Game::drawFlagAbove(Vector2 screenBase, Color flagColor,
-                         const char* label) const {
-                             DrawLineEx(screenBase,
-                                        { screenBase.x, screenBase.y - 44.0f },
-                                        3.0f,
-                                        DARKGRAY);
+void Game::drawFlagAbove(Vector2 screenBase, Color flagColor, const char* label) const {
+    DrawLineEx(screenBase, { screenBase.x, screenBase.y - 44.0f }, 3.0f, DARKGRAY);
 
-                             Rectangle flagRect = {
-                                 screenBase.x - 20.0f,
-                                 screenBase.y - 64.0f,
-                                 40.0f,
-                                 24.0f
-                             };
+    Rectangle flagRect = {
+        screenBase.x - 20.0f,
+        screenBase.y - 64.0f,
+        40.0f,
+        24.0f
+    };
 
-                             DrawRectangleRec(flagRect, flagColor);
-                             DrawRectangleLinesEx(flagRect, 1.5f, BLACK);
+    DrawRectangleRec(flagRect, flagColor);
+    DrawRectangleLinesEx(flagRect, 1.5f, BLACK);
 
-                             const int fontSize = (std::strlen(label) > 6) ? 12 : 14;
-                             const int textWidth = MeasureText(label, fontSize);
-                             const int textX = static_cast<int>(flagRect.x +
-                             (flagRect.width - textWidth) * 0.5f);
-                             const int textY = static_cast<int>(flagRect.y + 5);
+    const int fontSize = (std::strlen(label) > 6) ? 12 : 14;
+    const int textWidth = MeasureText(label, fontSize);
+    const int textX = static_cast<int>(flagRect.x +
+    (flagRect.width - textWidth) * 0.5f);
+    const int textY = static_cast<int>(flagRect.y + 5);
 
-                             const Color textColor = (flagColor.r < 60 &&
-                             flagColor.g < 60 &&
-                             flagColor.b < 60) ? WHITE : BLACK;
+    const Color textColor = (flagColor.r < 60 && flagColor.g < 60 && flagColor.b < 60) ? WHITE : BLACK;
 
-                             DrawText(label, textX, textY, fontSize, textColor);
-                         }
+    DrawText(label, textX, textY, fontSize, textColor);
+}
 
-                         void Game::drawFlagIcon(Vector2 screenBase, Color flagColor,
-                                                 const char* label) const {
-                                                     DrawLineEx(screenBase,
-                                                                { screenBase.x, screenBase.y - 28.0f },
-                                                                2.5f,
-                                                                DARKGRAY);
+void Game::drawFlagIcon(Vector2 screenBase, Color flagColor, const char* label) const {
+    DrawLineEx(screenBase,{ screenBase.x, screenBase.y - 28.0f }, 2.5f, DARKGRAY);
 
-                                                     Rectangle flagRect = {
-                                                         screenBase.x,
-                                                         screenBase.y - 28.0f,
-                                                         26.0f,
-                                                         16.0f
-                                                     };
+    Rectangle flagRect = {
+        screenBase.x,
+        screenBase.y - 28.0f,
+        26.0f,
+        16.0f
+    };
 
-                                                     DrawRectangleRec(flagRect, flagColor);
-                                                     DrawRectangleLinesEx(flagRect, 1.0f, BLACK);
+    DrawRectangleRec(flagRect, flagColor);
+    DrawRectangleLinesEx(flagRect, 1.0f, BLACK);
 
-                                                     const Color textColor = (flagColor.r < 60 &&
-                                                     flagColor.g < 60 &&
-                                                     flagColor.b < 60) ? WHITE : BLACK;
+    const Color textColor = (flagColor.r < 60 && flagColor.g < 60 && flagColor.b < 60) ? WHITE : BLACK;
 
-                                                     DrawText(label,
-                                                              static_cast<int>(flagRect.x + 3),
-                                                              static_cast<int>(flagRect.y + 2),
-                                                              10,
-                                                              textColor);
-                                                 }
+    DrawText(label, static_cast<int>(flagRect.x + 3), static_cast<int>(flagRect.y + 2), 10, textColor);
+}
 
-                                                 void Game::drawMarkerBuoy(Vector2 worldPos, Color buoyColor,
-                                                                           Color flagColor, const char* label) {
-                                                     const Vector2 p = worldToScreen(worldPos);
+void Game::drawMarkerBuoy(Vector2 worldPos, Color buoyColor, Color flagColor, const char* label) {
+    const Vector2 p = worldToScreen(worldPos);
 
-                                                     DrawCircleV(p, 18.0f, buoyColor);
-                                                     DrawCircleLines(static_cast<int>(p.x), static_cast<int>(p.y),
-                                                                     18.0f, BLACK);
+    DrawCircleV(p, 18.0f, buoyColor);
+    DrawCircleLines(static_cast<int>(p.x), static_cast<int>(p.y), 18.0f, BLACK);
 
-                                                     drawFlagAbove(p, flagColor, label);
-                                                                           }
+    drawFlagAbove(p, flagColor, label);
+}
 
-                                                                           void Game::drawMarkBoat(Vector2 worldPos, float headingDeg,
-                                                                                                   Color hullColor, Color flagColor,
-                                                                                                   const char* label) {
-                                                                               const Vector2 p = worldToScreen(worldPos);
-                                                                               const Vector2 fwd = headingToVec(headingDeg);
-                                                                               const Vector2 right = { fwd.y, -fwd.x };
+void Game::drawMarkBoat(Vector2 worldPos, float headingDeg, Color hullColor, Color flagColor, const char* label) {
+    const Vector2 p = worldToScreen(worldPos);
+    const Vector2 fwd = headingToVec(headingDeg);
+    const Vector2 right = { fwd.y, -fwd.x };
 
-                                                                               const Vector2 p1 = {
-                                                                                   p.x + fwd.x * 42.0f,
-                                                                                   p.y + fwd.y * 42.0f
-                                                                               };
-                                                                               const Vector2 p2 = {
-                                                                                   p.x - fwd.x * 24.0f - right.x * 18.0f,
-                                                                                   p.y - fwd.y * 24.0f - right.y * 18.0f
-                                                                               };
-                                                                               const Vector2 p3 = {
-                                                                                   p.x - fwd.x * 24.0f + right.x * 18.0f,
-                                                                                   p.y - fwd.y * 24.0f + right.y * 18.0f
-                                                                               };
+    const Vector2 p1 = {
+        p.x + fwd.x * 42.0f,
+        p.y + fwd.y * 42.0f
+    };
+    const Vector2 p2 = {
+        p.x - fwd.x * 24.0f - right.x * 18.0f,
+        p.y - fwd.y * 24.0f - right.y * 18.0f
+    };
+    const Vector2 p3 = {
+        p.x - fwd.x * 24.0f + right.x * 18.0f,
+        p.y - fwd.y * 24.0f + right.y * 18.0f
+    };
 
-                                                                               DrawTriangle(p1, p3, p2, hullColor);
-                                                                               DrawTriangleLines(p1, p2, p3, BLACK);
+    DrawTriangle(p1, p3, p2, hullColor);
+    DrawTriangleLines(p1, p2, p3, BLACK);
 
-                                                                               drawFlagAbove(p, flagColor, label);
-                                                                                                   }
+    drawFlagAbove(p, flagColor, label);
+}
 
-                                                                                                   void Game::drawRaceInfo() {
-                                                                                                       if (!raceMode_) {
-                                                                                                           return;
-                                                                                                       }
+void Game::drawRaceInfo() {
+    if (!raceMode_) {
+        return;
+    }
 
-                                                                                                       DrawText("RACE MODE", 20, 60, 20, RED);
+    DrawText("RACE MODE", 20, 60, 20, RED);
+    if (bfd_) {
+        DrawText("BFD", 20, 85, 20, RED);
+    } else if (prestartActive_) {
+        const int minutes = static_cast<int>(prestartTime_) / 60;
+        const int seconds = static_cast<int>(prestartTime_) % 60;
 
-                                                                                                       if (bfd_) {
-                                                                                                           DrawText("BFD", 20, 85, 20, RED);
-                                                                                                       } else if (prestartActive_) {
-                                                                                                           const int minutes = static_cast<int>(prestartTime_) / 60;
-                                                                                                           const int seconds = static_cast<int>(prestartTime_) % 60;
+        DrawText(TextFormat("PRE-START: %02d:%02d", minutes, seconds), 20, 85, 20, RED);
+    } else if (raceFinished_) {
+        DrawText("FINISHED", 20, 85, 20, GREEN);
+    } else {
+        DrawText(TextFormat("TIME: %.1f s", raceTime_), 20, 85, 20, WHITE);
+    }
 
-                                                                                                           DrawText(TextFormat("PRE-START: %02d:%02d", minutes, seconds),
-                                                                                                                    20, 85, 20, RED);
-                                                                                                       } else if (raceFinished_) {
-                                                                                                           DrawText("FINISHED", 20, 85, 20, GREEN);
-                                                                                                       } else {
-                                                                                                           DrawText(TextFormat("TIME: %.1f s", raceTime_),
-                                                                                                                    20, 85, 20, WHITE);
-                                                                                                       }
+    DrawText(TextFormat("PENALTIES: %d", pendingPenalties_), 20, 110, 16, ORANGE);
 
-                                                                                                       /*DrawText(TextFormat("PENALTIES: %d", pendingPenalties_),
-                                                                                                                // 20, 110, 16, ORANGE);*/
+    drawResultsPanel();
+}
 
-                                                                                                       drawResultsPanel();
-                                                                                                   }
+void Game::drawResultsPanel() {
+    if (!raceFinished_) {
+        return;
+    }
 
-                                                                                                   void Game::drawResultsPanel() {
-                                                                                                       if (!raceFinished_) {
-                                                                                                           return;
-                                                                                                       }
+    Rectangle panel = { 490.0f, 270.0f, 300.0f, 180.0f };
+    DrawRectangleRounded(panel, 0.1f, 10, uiColor(15, 20, 30, 240));
 
-                                                                                                       Rectangle panel = { 490.0f, 270.0f, 300.0f, 180.0f };
-                                                                                                       DrawRectangleRounded(panel, 0.1f, 10, uiColor(15, 20, 30, 240));
+    if (bfd_) {
+        DrawText("RACE FINISHED", 540, 290, 20, GREEN);
+        DrawText("BFD", 610, 350, 48, RED);
+        DrawText("Saved to leaderboard.txt", 520, 410, 14, LIGHTGRAY);
+    } else {
+        DrawText("RACE FINISHED", 540, 290, 20, GREEN);
+        DrawText(TextFormat("Elapsed: %.2f s", raceTime_), 520, 340, 20, WHITE);
 
-                                                                                                       if (bfd_) {
-                                                                                                           DrawText("RACE FINISHED", 540, 290, 20, GREEN);
-                                                                                                           DrawText("BFD", 610, 350, 48, RED);
-                                                                                                           DrawText("Saved to leaderboard.txt", 520, 410, 14, LIGHTGRAY);
-                                                                                                       } else {
-                                                                                                           DrawText("RACE FINISHED", 540, 290, 20, GREEN);
+        /*DrawText(TextFormat("Penalties: %d", pendingPenalties_), 520, 370, 18, ORANGE);*/
 
-                                                                                                           DrawText(TextFormat("Elapsed: %.2f s", raceTime_),
-                                                                                                                    520, 340, 20, WHITE);
+        DrawText("Saved to leaderboard.txt", 520, 410, 14, LIGHTGRAY);
+    }
+}
 
-                                                                                                           DrawText(TextFormat("Penalties: %d", pendingPenalties_),
-                                                                                                                    520, 370, 18, ORANGE);
+void Game::drawRaceFlagsPanel() {
+    if (!raceMode_) {
+        return;
+    }
 
-                                                                                                           DrawText("Saved to leaderboard.txt", 520, 410, 14, LIGHTGRAY);
-                                                                                                       }
-                                                                                                   }
+    //Rectangle panel = { 970.0f, 20.0f, 290.0f, 135.0f };
+    //DrawRectangleRounded(panel, 0.1f, 8, uiColor(15, 20, 30, 230));
 
-                                                                                                   void Game::drawRaceFlagsPanel() {
-                                                                                                       if (!raceMode_) {
-                                                                                                           return;
-                                                                                                       }
+    //DrawText("RACE FLAGS", 990, 28, 16, WHITE);
 
-                                                                                                       Rectangle panel = { 970.0f, 20.0f, 290.0f, 135.0f };
-                                                                                                       DrawRectangleRounded(panel, 0.1f, 8, uiColor(15, 20, 30, 230));
+    const FlagPhase phase = currentFlagPhase();
 
-                                                                                                       DrawText("RACE FLAGS", 990, 28, 16, WHITE);
+    const bool classUp = prestartActive_ && prestartTime_ > 0.0f;
+    const bool blackUp = phase == FlagPhase::PrepUp;
 
-                                                                                                       const FlagPhase phase = currentFlagPhase();
+    if (classUp) {
+        drawFlagIcon({ 1215.0f, 80.0f }, WHITE, "4.7");
+    }
+    if (blackUp) {
+        drawFlagIcon({ 1215.0f, 120.0f }, BLACK, "");
+    }
 
-                                                                                                       const bool classUp = prestartActive_ && prestartTime_ > 0.0f;
-                                                                                                       const bool blackUp = phase == FlagPhase::PrepUp;
 
-                                                                                                       drawFlagIcon({ 1015.0f, 112.0f }, ORANGE, "4.7");
-                                                                                                       drawFlagIcon({ 1155.0f, 112.0f }, BLACK, "BLACK");
 
-                                                                                                       DrawText(TextFormat("4.7:    %s", classUp ? "UP" : "DOWN"),
-                                                                                                                1060, 70, 16, classUp ? LIME : GRAY);
+    //DrawText(TextFormat("4.7:    %s", classUp ? "UP" : "DOWN"), 1060, 70, 16, classUp ? LIME : GRAY);
+    //DrawText(TextFormat("Black: %s", blackUp ? "UP" : "DOWN"), 1060, 95, 16, blackUp ? LIME : GRAY);
 
-                                                                                                       DrawText(TextFormat("Black: %s", blackUp ? "UP" : "DOWN"),
-                                                                                                                1060, 95, 16, blackUp ? LIME : GRAY);
+    const char* stateText = "RACING";
+    if (prestartActive_) {
+        stateText = "PRE-START";
+    } else if (raceFinished_) {
+        stateText = "FINISHED";
+    }
 
-                                                                                                       const char* stateText = "RACING";
-                                                                                                       if (prestartActive_) {
-                                                                                                           stateText = "PRE-START";
-                                                                                                       } else if (raceFinished_) {
-                                                                                                           stateText = "FINISHED";
-                                                                                                       }
-
-                                                                                                       DrawText(stateText, 1060, 45, 16, WHITE);
-                                                                                                   }
+    DrawText(stateText, 1115, 20, 16, RED);
+}

@@ -1,7 +1,6 @@
 #include "raylib.h"
 #include "Game.h"
 #include "UI.h"
-
 #include <cmath>
 
 int main() {
@@ -21,17 +20,10 @@ int main() {
 
     while (!WindowShouldClose() && !game.ShouldClose()) {
         const float dt = GetFrameTime();
-
-        // Compute virtual-to-physical transform.
-        const float scale = std::fmin(
-            static_cast<float>(GetScreenWidth()) / kVirtualWidth,
-                                      static_cast<float>(GetScreenHeight()) / kVirtualHeight
-        );
-
+        const float scale = std::fmin(static_cast<float>(GetScreenWidth()) / kVirtualWidth, static_cast<float>(GetScreenHeight()) / kVirtualHeight);
         const float destX = (GetScreenWidth() - kVirtualWidth * scale) * 0.5f;
         const float destY = (GetScreenHeight() - kVirtualHeight * scale) * 0.5f;
 
-        // Map physical mouse coordinates back into virtual 1280x720 space.
         const float mouseScale = 1.0f / scale;
         const float mouseOffsetX = -destX * mouseScale;
         const float mouseOffsetY = -destY * mouseScale;

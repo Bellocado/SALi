@@ -1,5 +1,4 @@
 #include "UI.h"
-
 #include <cmath>
 
 namespace {
@@ -17,7 +16,7 @@ namespace {
         return c;
     }
 
-} // namespace
+}
 
 void SetVirtualMouseTransform(float offsetX, float offsetY, float scale) {
     gMouseOffsetX = offsetX;
@@ -43,17 +42,16 @@ bool button(Rectangle r, const char* text, int fontSize) {
     DrawRectangleRec(r, fill);
     DrawRectangleLines(
         static_cast<int>(r.x),
-                       static_cast<int>(r.y),
-                       static_cast<int>(r.width),
-                       static_cast<int>(r.height),
-                       BLACK
+        static_cast<int>(r.y),
+        static_cast<int>(r.width),
+        static_cast<int>(r.height),
+        BLACK
     );
 
     const int textWidth = MeasureText(text, fontSize);
     const int tx = static_cast<int>(r.x + (r.width - textWidth) * 0.5f);
     const int ty = static_cast<int>(r.y + (r.height - fontSize) * 0.5f);
     DrawText(text, tx, ty, fontSize, BLACK);
-
     return hover && IsMouseButtonPressed(MOUSE_LEFT_BUTTON);
 }
 
@@ -61,10 +59,10 @@ void drawTextField(Rectangle rec, const char* text, bool active, float caretTime
     DrawRectangleRec(rec, uiColor(230, 230, 230, 255));
     DrawRectangleLines(
         static_cast<int>(rec.x),
-                       static_cast<int>(rec.y),
-                       static_cast<int>(rec.width),
-                       static_cast<int>(rec.height),
-                       BLACK
+        static_cast<int>(rec.y),
+        static_cast<int>(rec.width),
+        static_cast<int>(rec.height),
+        BLACK
     );
 
     const int textX = static_cast<int>(rec.x + 6);
@@ -78,6 +76,5 @@ void drawTextField(Rectangle rec, const char* text, bool active, float caretTime
 }
 
 bool clickedOn(Rectangle rec) {
-    return IsMouseButtonPressed(MOUSE_LEFT_BUTTON) &&
-    CheckCollisionPointRec(GetVirtualMousePosition(), rec);
+    return IsMouseButtonPressed(MOUSE_LEFT_BUTTON) && CheckCollisionPointRec(GetVirtualMousePosition(), rec);
 }

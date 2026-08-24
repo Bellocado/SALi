@@ -87,7 +87,6 @@ void updateBoatPhysics(Boat& b, const Wind& w, float dt) {
 
     const float twa = std::acos(clampf(dot(fwd, b.awFrom), -1.0f, 1.0f)) * RAD2DEG;
 
-    // Hysteresis for tacking: keep the old side until the wind crosses enough.
     const float sideCross = cross(fwd, b.awFrom);
     if (sideCross > 0.18f) {
         b.sideSign = 1.0f;
@@ -95,10 +94,8 @@ void updateBoatPhysics(Boat& b, const Wind& w, float dt) {
         b.sideSign = -1.0f;
     }
 
-    // Wind limit: the point where the sail would start luffing.
     const float windLimit = clampf((twa - 30.0f) / 140.0f, minSailAngle(), 1.0f);
 
-    // Update actual boom position.
     if (b.mainSheet >= windLimit) {
         b.boomSheet = windLimit;
     } else {
@@ -108,7 +105,6 @@ void updateBoatPhysics(Boat& b, const Wind& w, float dt) {
     const float sideSmooth = clampf(dt * 8.0f, 0.0f, 1.0f);
     b.boomSide += (b.sideSign - b.boomSide) * sideSmooth;
 
-    // If the sheet is too loose, the sail is flapping and has no power.
     const bool luffing = b.mainSheet > windLimit || twa < 25.0f;
 
     const float trimEff = luffing ? 0.0f : sailEffectiveness(twa, b.boomSheet, b.outhaul);
@@ -124,13 +120,9 @@ void updateBoatPhysics(Boat& b, const Wind& w, float dt) {
     const float targetSpeed = polarSpeed(twa, awsMag) * trimEff * powerCoeff * outhaulCoeff;
 
     b.speed += (targetSpeed - b.speed) * dt;
-    b.heading = normalizeAngle(
-        b.heading + (b.rudder * (0.5f + b.speed * 0.2f)) * dt
-    );
+    b.heading = normalizeAngle(b.heading + (b.rudder * (0.5f + b.speed * 0.2f)) * dt);
 
-    const float driftAmt = (twa < 90.0f)
-    ? (1.0f - twa / 90.0f) * (4.0f / (1.0f + b.speed))
-    : 0.0f;
+    const float driftAmt = (twa < 90.0f) ? (1.0f - twa / 90.0f) * (4.0f / (1.0f + b.speed)) : 0.0f;
     b.driftDeg = driftAmt * -b.sideSign;
 
     const Vector2 courseDir = headingToVec(b.heading + b.driftDeg);
